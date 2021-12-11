@@ -8,6 +8,8 @@ from torch.cuda.amp import GradScaler, autocast
 from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 from utils import save_config_file, accuracy, save_checkpoint
+import torch.nn as nn
+
 
 torch.manual_seed(0)
 
@@ -21,7 +23,9 @@ class SimCLR(object):
         self.scheduler = kwargs['scheduler']
         self.writer = SummaryWriter()
         logging.basicConfig(filename=os.path.join(self.writer.log_dir, 'training.log'), level=logging.DEBUG)
-        self.criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
+        self.contrast_criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
+        self.predict_criterion = torch.nn.CrossEntropyLoss().to(self.args.device)
+
 
     def info_nce_loss(self, features):
 
@@ -65,16 +69,27 @@ class SimCLR(object):
         logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
         logging.info(f"Training with gpu: {self.args.disable_cuda}.")
 
+        # supervised_loss_func = nn.NLLLoss()
+
         for epoch_counter in range(self.args.epochs):
-            for images, _ in tqdm(train_loader):
+            for images, prediction_targets in tqdm(train_loader):
                 images = torch.cat(images, dim=0)
 
                 images = images.to(self.args.device)
 
                 with autocast(enabled=self.args.fp16_precision):
-                    features = self.model(images)
+                    # features = self.model(images)
+                    prediction, features = self.model(images)
+                    
+                    # Supervised classfication loss
+                    sup_loss = self.predict_criterion(prediction, prediction_targets)
+
+                    # Contrastive loss
                     logits, labels = self.info_nce_loss(features)
-                    loss = self.criterion(logits, labels)
+                    self_loss = self.contrast_criterion(logits, labels)
+
+                    # adding up the loss
+                    loss = 0.5 * sup_loss + 0.5 + self_loss
 
                 self.optimizer.zero_grad()
 
