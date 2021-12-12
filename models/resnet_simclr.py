@@ -14,9 +14,13 @@ class ResNetSimCLR(nn.Module):
         self.backbone = self._get_basemodel(base_model)
         dim_mlp = self.backbone.fc.in_features
 
+
         # add MTL projection heads
-        self.backbone.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), self.backbone.fc)
-        self.backbone.contrast = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), self.backbone.fc)
+        last_layer = self.backbone.fc
+        self.backbone.fc = nn.Identity() # place holder for the fc layer
+
+        self.backbone.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
+        self.backbone.contrast = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
 
     def _get_basemodel(self, model_name):
         try:
