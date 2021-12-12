@@ -73,10 +73,14 @@ class SimCLR(object):
 
         for epoch_counter in range(self.args.epochs):
             for images, prediction_targets in tqdm(train_loader):
+                # print("Shape of image tensor is:", images.size())
+                # print(prediction_targets)
                 images = torch.cat(images, dim=0)
-
+                prediction_targets = torch.cat(prediction_targets, dim=0)
+                # print("Shape of image tensor is:", images.size())
+                # print("Shape of target tensor is:", prediction_targets.size())
                 images = images.to(self.args.device)
-
+                prediction_targets = prediction_targets.to(self.args.device)
                 with autocast(enabled=self.args.fp16_precision):
                     # features = self.model(images)
                     prediction, features = self.model(images)
