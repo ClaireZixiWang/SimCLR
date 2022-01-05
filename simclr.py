@@ -67,7 +67,7 @@ class SimCLR(object):
 
         n_iter = 0
         logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
-        logging.info(f"Training with gpu: {self.args.disable_cuda}.")
+        logging.info(f"Training with cpu: {self.args.disable_cuda}.")
 
         # supervised_loss_func = nn.NLLLoss()
 
