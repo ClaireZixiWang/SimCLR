@@ -19,7 +19,8 @@ class ResNetSimCLR(nn.Module):
         last_layer = self.backbone.fc
         self.backbone.fc = nn.Identity() # place holder for the fc layer
 
-        self.backbone.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
+        self.backbone.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), 
+                                              nn.Linear(dim_mlp, 100, bias=True))
         self.backbone.contrast = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
 
     def _get_basemodel(self, model_name):
