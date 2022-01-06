@@ -2,6 +2,7 @@ import argparse
 import torch
 import torch.backends.cudnn as cudnn
 from torchvision import models
+from torchvision.datasets.cifar import CIFAR10
 from data_aug.contrastive_learning_dataset import ContrastiveLearningDataset
 from models.resnet_simclr import ResNetSimCLR
 from simclr import SimCLR
@@ -13,14 +14,14 @@ model_names = sorted(name for name in models.__dict__
 parser = argparse.ArgumentParser(description='PyTorch SimCLR')
 parser.add_argument('-data', metavar='DIR', default='./datasets',
                     help='path to dataset')
-parser.add_argument('-dataset-name', default='stl10',
-                    help='dataset name', choices=['stl10', 'cifar10', 'cifar100'])
+parser.add_argument('--dataset-name', default='cifar10',
+                    help='dataset name', choices=['cifar10', 'cifar100'])
 parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet18',
                     choices=model_names,
                     help='model architecture: ' +
                          ' | '.join(model_names) +
                          ' (default: resnet50)')
-parser.add_argument('-j', '--workers', default=12, type=int, metavar='N',
+parser.add_argument('-j', '--workers', default=2, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
                     help='number of total epochs to run')
@@ -64,6 +65,13 @@ def main():
         args.device = torch.device('cpu')
         args.gpu_index = -1
 
+    
+    # check dataset, determine classification output dimension
+    if args.dataset_name == 'cifar10':
+        args.classification_output_dim = 10
+    elif args.dataset_name == 'cifar100':
+        args.classification_output_dim = 100
+
     dataset = ContrastiveLearningDataset(args.data)
 
     train_dataset = dataset.get_dataset(args.dataset_name, args.n_views)
@@ -72,7 +80,8 @@ def main():
         train_dataset, batch_size=args.batch_size, shuffle=True,
         num_workers=args.workers, pin_memory=True, drop_last=True)
 
-    model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim)
+
+    model = ResNetSimCLR(base_model=args.arch, out_dim=args.out_dim, classification_out_dim=args.classification_output_dim)
 
     optimizer = torch.optim.Adam(model.parameters(), args.lr, weight_decay=args.weight_decay)
 

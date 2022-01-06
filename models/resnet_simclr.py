@@ -6,7 +6,7 @@ from exceptions.exceptions import InvalidBackboneError
 
 class ResNetSimCLR(nn.Module):
 
-    def __init__(self, base_model, out_dim):
+    def __init__(self, base_model, out_dim, classification_out_dim):
         super(ResNetSimCLR, self).__init__()
         self.resnet_dict = {"resnet18": models.resnet18(pretrained=False, num_classes=out_dim),
                             "resnet50": models.resnet50(pretrained=False, num_classes=out_dim)}
@@ -19,8 +19,11 @@ class ResNetSimCLR(nn.Module):
         last_layer = self.backbone.fc
         self.backbone.fc = nn.Identity() # place holder for the fc layer
 
+        # classification prediction head
         self.backbone.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), 
-                                              nn.Linear(dim_mlp, 100, bias=True))
+                                              nn.Linear(dim_mlp, classification_out_dim, bias=True))
+
+        # contrastive learning head
         self.backbone.contrast = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
 
     def _get_basemodel(self, model_name):
