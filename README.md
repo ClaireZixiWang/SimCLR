@@ -1,7 +1,5 @@
 # Robust Machine Learning Final Project - Multitask Learning with Self-Supervision to Improve Robustness
 
-This source code is built from the Pytorch SimCLR implementation from sthalles/SimCLR.
-
 ## Project Abstract
 
 While deep neural networks achieves good accuracy in many applications, they remain vulnerable under adversarial attacks. In our project, we investigate the architecture of multitask learning, specifically multitask learning combined with self-supervised learning, and its affect on model robustness. We use Contrastive Learning as the self-supervised task that is trained in parallel with the main supervised task. Our experiment shows that training with auxiliary Contrastive Learning task yields a robust accuracy of 60% in the main classification task. Moreover, we compare the effects of a Supervised auxiliary task and a Contrasitve auxiliary task, and the result shows that Contrastive auxiliary task provides much larger robustness improvement than the Supervised auxiliary task. These two experiments together show that Contrastive Learning provides a strong regularization when trained together with a Classification task, forcing the model to learn a more robust image representation.
@@ -32,3 +30,25 @@ We can see that in CIFAR10, the contrastive learning auxilliary task brings a ma
 
 
 ## Code Breakdown, running the demo
+The experiments are consist of roughly three stages: training, attacking, and testing the three architectures mentioned above. The code involving these steps are specified as follows:
+
+### 1. Single-Task Base Model
+**Train, attack, test the model on CIFAR10:** cifar10_test.ipynb \
+**Train, attack, test the model on CIFAR100:** cifar100_test.ipynb
+### 2. Supervised Multitask Model
+**Train the supervised multitask model on CIFAR100:** cifar100_Supervised_MTL.ipynb \
+**Attack, test the model on CIFAR100:** cifar100_test.ipynb
+### 3. Contrastive Multitask Model
+**Train the Contrastive Multitask Model on CIFAR10 and 100:** 
+```sh
+python run.py -data ./datasets --dataset-name cifar10 --log-every-n-steps 100 --epochs 100
+
+python run.py -data ./datasets --dataset-name cifar100 --log-every-n-steps 100 --epochs 100
+```
+**Attack and Test the trained models on CIFAR10 and 100:** \
+attack-mtl-simclr-cifar10.ipynb \
+attack-mtl-simclr-cifar100.ipynb
+
+
+## Reference 
+This source code is built from the Pytorch SimCLR implementation from sthalles/SimCLR.
