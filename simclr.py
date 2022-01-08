@@ -58,7 +58,7 @@ class SimCLR(object):
         logits = logits / self.args.temperature
         return logits, labels
 
-    def train(self, train_loader):
+    def train(self, train_loader, dataset_name):
 
         scaler = GradScaler(enabled=self.args.fp16_precision)
 
@@ -66,8 +66,10 @@ class SimCLR(object):
         save_config_file(self.writer.log_dir, self.args)
 
         n_iter = 0
-        logging.info(f"Start SimCLR training for {self.args.epochs} epochs.")
-        logging.info(f"Training with gpu: {self.args.disable_cuda}.")
+        logging.info(f"Dataset: {dataset_name}")
+        logging.info(f"Base model: {self.model.base_model}")
+        logging.info(f"Start Multitask-SimCLR training for {self.args.epochs} epochs.")
+        logging.info(f"Training with cpu: {self.args.disable_cuda}.")
 
         # supervised_loss_func = nn.NLLLoss()
 

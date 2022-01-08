@@ -8,10 +8,11 @@ class ResNetSimCLR(nn.Module):
 
     def __init__(self, base_model, out_dim, classification_out_dim):
         super(ResNetSimCLR, self).__init__()
+        self.base_model = base_model
         self.resnet_dict = {"resnet18": models.resnet18(pretrained=False, num_classes=out_dim),
                             "resnet50": models.resnet50(pretrained=False, num_classes=out_dim)}
 
-        self.backbone = self._get_basemodel(base_model)
+        self.backbone = self._get_basemodel(self.base_model)
         dim_mlp = self.backbone.fc.in_features
 
 
@@ -20,11 +21,11 @@ class ResNetSimCLR(nn.Module):
         self.backbone.fc = nn.Identity() # place holder for the fc layer
 
         # classification prediction head
-        self.backbone.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), 
+        self.predict = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), 
                                               nn.Linear(dim_mlp, classification_out_dim, bias=True))
 
         # contrastive learning head
-        self.backbone.contrast = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
+        self.contrast = nn.Sequential(nn.Linear(dim_mlp, dim_mlp), nn.ReLU(), last_layer)
 
     def _get_basemodel(self, model_name):
         try:
@@ -37,6 +38,6 @@ class ResNetSimCLR(nn.Module):
 
     def forward(self, x):
         base_model = self.backbone(x)
-        prediction_out = self.backbone.predict(base_model)
-        simclr_out = self.backbone.contrast(base_model)
+        prediction_out = self.predict(base_model)
+        simclr_out = self.contrast(base_model)
         return prediction_out, simclr_out
